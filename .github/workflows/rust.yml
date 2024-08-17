@@ -25,16 +25,8 @@ jobs:
       run: cargo build --target x86_64-pc-windows-gnu --release --verbose -j 3
 
     - name: Archive Executables
-      run: zip -j linux.zip target/x86_64-unknown-linux-gnu/release/beat_extractor && zip -j windows.zip target/x86_64-pc-windows-gnu/release/beat_extractor.exe && zip -r windows.zip icons
-    - name: github-action-publish-binaries
-      # You may pin to the exact commit or the version.
-      # uses: skx/github-action-publish-binaries@b9ca5643b2f1d7371a6cba7f35333f1461bbc703
-      uses: skx/github-action-publish-binaries@release-2.0
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: zip -j linux_x86-64.zip target/x86_64-unknown-linux-gnu/release/beat_extractor && zip -j windows_x86-64.zip target/x86_64-pc-windows-gnu/release/beat_extractor.exe && zip -r windows_x86-64.zip icons
+    - uses: ncipollo/release-action@v1
       with:
-        # The pattern of files to upload
-        args:
-          linux.zip
-          windows.zip
-              
+        artifacts: "linux_x86-64.zip,windows_x86-64.zip"
+        body: "Nightly build"
