@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use notify::event::{ModifyKind, RenameMode};
 use notify::EventKind::Modify;
 use notify::{recommended_watcher, Event, RecursiveMode, Watcher};
@@ -5,7 +6,7 @@ use std::env;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 use tray_item::{IconSource, TrayItem};
 use zip::ZipArchive;
@@ -44,30 +45,33 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("Outputting to {}", output_dir.to_string_lossy());
     }
 
+    let mut seen_paths = HashSet::new();
+
     let mut watcher = recommended_watcher(move |event: notify::Result<Event>|match event {
         Ok(e) => {
-            if let Modify(ModifyKind::Name(RenameMode::Both)) = e.kind {
-                let archive_path = &e.paths[1];
-                if let Ok(f) = File::open(archive_path).map(|f|BufReader::new(f)) {
-                    if let Ok(mut archive) = ZipArchive::new(f) {
-                        if archive.file_names().find(|f|f.to_ascii_lowercase() == "info.dat").is_none() {
-                            println!("Not beatsaber file");
-                            return;
-                        }
-                        println!("Extracting {}", archive_path.to_string_lossy());
-                        let folder_name = archive_path.file_stem();
+            let file = match e.kind {
+                Modify(ModifyKind::Name(RenameMode::Both)) => {
+                    Some(&e.paths[1])
+                }
+                Modify(ModifyKind::Name(RenameMode::To)) => {
+                    Some(&e.paths[0])
+                }
+                _ => {
+                    None
+                }
+            };
 
-                        if folder_name.is_none() {
-                            println!("Failed to extract folder name from {}", archive_path.to_string_lossy());
-                            return;
-                        }
+            if let Some(dir) = file {
+                if !dir.is_file() && (dir.extension().is_none() || (dir.extension().is_some() && dir.extension().unwrap() != "zip")) {
+                    return;
+                }
+                if seen_paths.contains(dir) {
+                    return;
+                }
 
-                        let output_dir = output_dir.join(folder_name.expect("Expected a .zip file, found no extension"));
-                        let _ = archive.extract(&output_dir);
-                        println!("Extracted to {}", output_dir.to_string_lossy())
-                    }
-                };
-            }
+                seen_paths.insert(dir.clone());
+                let _ = extract_to_output(dir, &output_dir);
+            };
         }
         Err(err) => println!("Watcher error {err}")
     })?;
@@ -92,5 +96,28 @@ fn main() -> Result<(), Box<dyn Error>> {
     });
 
     let _ = rx.recv();
+    Ok(())
+}
+
+fn extract_to_output(archive_path: &Path, output_dir: &Path) -> Result<(), Box<dyn Error>> {
+    if let Ok(f) = File::open(archive_path).map(|f|BufReader::new(f)) {
+        if let Ok(mut archive) = ZipArchive::new(f) {
+            if archive.file_names().find(|f|f.to_ascii_lowercase() == "info.dat").is_none() {
+                println!("Not beatsaber file");
+                return Ok(());
+            }
+            println!("Extracting {}", archive_path.to_string_lossy());
+            let folder_name = archive_path.file_stem();
+
+            if folder_name.is_none() {
+                println!("Failed to extract folder name from {}", archive_path.to_string_lossy());
+                return Ok(());
+            }
+
+            let output_dir = output_dir.join(folder_name.expect("Expected a .zip file, found no extension"));
+            let _ = archive.extract(&output_dir);
+            println!("Extracted to {}", output_dir.to_string_lossy())
+        }
+    }
     Ok(())
 }
