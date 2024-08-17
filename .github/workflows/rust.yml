@@ -30,3 +30,4 @@ jobs:
       with:
         artifacts: "linux_x86-64.zip,windows_x86-64.zip"
         body: "Nightly build"
+        commit: ${{ vars.GITHUB_SHA }}
