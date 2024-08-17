@@ -1,0 +1,11 @@
+[package]
+name = "beat_extractor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+directories = "5.0.1"
+image = "0.25.2"
+notify = "6.1.1"
+tray-item = { version = "0.10.0", features = ["ksni"] }
+zip = "2.1.6"
