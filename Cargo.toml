@@ -19,3 +19,6 @@ features = ["ksni"]
 [target.'cfg(target_os="linux")'.dependencies.libdbus-sys]
 version = "0.2.5"
 features = ["vendored"]
+
+[build-dependencies]
+embed-resource = "2.4.3"

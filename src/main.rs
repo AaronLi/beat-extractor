@@ -11,7 +11,7 @@ use tray_item::{IconSource, TrayItem};
 use zip::ZipArchive;
 
 #[cfg(target_os = "linux")]
-const FELLOW: &'static [u8] = include_bytes!("fellow.bmp");
+const FELLOW: &'static [u8] = include_bytes!("../icons/fellow.ico");
 
 fn main() -> Result<(), Box<dyn Error>> {
     let directories = directories::UserDirs::new().expect("Failed to get directories info");
@@ -76,7 +76,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let (tx, rx) = mpsc::channel();
     #[cfg(target_os = "windows")]
-    let mut tray = TrayItem::new("Helpful Hyrax", IconSource::Resource("fellow.bmp"))?;
+    let mut tray = TrayItem::new("Helpful Hyrax", IconSource::Resource("hyrax"))?;
 
 
     #[cfg(target_os = "linux")]
