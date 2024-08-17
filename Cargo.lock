@@ -112,6 +112,7 @@ version = "0.1.0"
 dependencies = [
  "directories",
  "image",
+ "libdbus-sys",
  "notify",
  "tray-item",
  "zip",
@@ -862,6 +863,7 @@ version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06085512b750d640299b79be4bad3d2fa90a9c00b1fd9e1b46364f66f0485c72"
 dependencies = [
+ "cc",
  "pkg-config",
 ]
 

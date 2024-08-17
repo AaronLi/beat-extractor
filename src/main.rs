@@ -80,7 +80,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let (tx, rx) = mpsc::channel();
     let mut tray = TrayItem::new("Helpful Hyrax", IconSource::Data {width: icon.width() as i32, height: icon.height() as i32, data: icon_argb})?;
 
-    tray.add_label("Helpful Hyrax");
+    tray.add_label("Helpful Hyrax")?;
     let _ = tray.add_menu_item("Quit", move || {
         let _ = tx.send(());
     });
