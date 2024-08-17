@@ -10,6 +10,7 @@ use std::sync::mpsc;
 use tray_item::{IconSource, TrayItem};
 use zip::ZipArchive;
 
+#[cfg(target_os = "linux")]
 const FELLOW: &'static [u8] = include_bytes!("fellow.bmp");
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -73,12 +74,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     watcher.watch(&watch_dir, RecursiveMode::NonRecursive)?;
 
-    let icon = image::load_from_memory(FELLOW)?.to_rgba8();
-
-    let icon_argb = icon.as_ref().chunks(4).flat_map(|rgba|[rgba[3], rgba[0], rgba[1], rgba[2]]).collect();
-
     let (tx, rx) = mpsc::channel();
-    let mut tray = TrayItem::new("Helpful Hyrax", IconSource::Data {width: icon.width() as i32, height: icon.height() as i32, data: icon_argb})?;
+    #[cfg(target_os = "windows")]
+    let mut tray = TrayItem::new("Helpful Hyrax", IconSource::Resource("fellow.bmp"))?;
+
+
+    #[cfg(target_os = "linux")]
+    let mut tray = {
+        let icon = image::load_from_memory(FELLOW)?.to_rgba8();
+        let icon_argb = icon.as_ref().chunks(4).flat_map(|rgba|[rgba[3], rgba[0], rgba[1], rgba[2]]).collect();
+        TrayItem::new("Helpful Hyrax", IconSource::Data {width: icon.width() as i32, height: icon.height() as i32, data: icon_argb})?
+    };
 
     tray.add_label("Helpful Hyrax")?;
     let _ = tray.add_menu_item("Quit", move || {
